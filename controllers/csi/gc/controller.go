@@ -78,7 +78,7 @@ func (gc *CSIGarbageCollector) Reconcile(ctx context.Context, request reconcile.
 		return reconcileResult, nil
 	}
 
-	ver, err := dtc.GetLatestAgentVersion(dtclient.OsUnix, dtclient.InstallerTypePaaS)
+	ver, err := dtc.GetLatestAgentVersion(dtclient.OsUnix, dtclient.InstallerTypePaasSh)
 	if err != nil {
 		gc.logger.Error(err, "failed to query OneAgent version")
 		return reconcileResult, nil

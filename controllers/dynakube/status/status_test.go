@@ -75,7 +75,7 @@ func TestSetDynakubeStatus(t *testing.T) {
 		}, nil)
 
 		dtc.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypeDefault).Return(testVersion, nil)
-		dtc.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypePaaS).Return(testVersionPaas, nil)
+		dtc.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypePaasSh).Return(testVersionPaas, nil)
 
 		err := SetDynakubeStatus(instance, options)
 
@@ -238,7 +238,7 @@ func TestSetDynakubeStatus(t *testing.T) {
 		}, nil)
 
 		dtc.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypeDefault).Return(testVersion, nil)
-		dtc.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypePaaS).Return("", fmt.Errorf(testError))
+		dtc.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypePaasSh).Return("", fmt.Errorf(testError))
 
 		err := SetDynakubeStatus(instance, options)
 		assert.EqualError(t, err, testError)

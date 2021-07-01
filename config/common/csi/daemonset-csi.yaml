@@ -40,7 +40,11 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: spec.nodeName
-          resources: {}
+          resources:
+            requests:
+              memory: 100Mi
+            limits:
+              memory: 100Mi
           ports:
             - containerPort: 10080
               name: healthz
@@ -81,6 +85,11 @@ spec:
             - --csi-address=/csi/csi.sock
             - --kubelet-registration-path=/var/lib/kubelet/plugins/csi.oneagent.dynatrace.com/csi.sock
             - --health-port=9809
+          resources:
+            requests:
+              memory: 100Mi
+            limits:
+              memory: 100Mi
           ports:
             - containerPort: 9809
               name: healthz

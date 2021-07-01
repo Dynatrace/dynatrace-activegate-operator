@@ -70,8 +70,8 @@ const (
 	InstallerTypeDefault = "default"
 	//Commented for linter, left for further reference
 	//InstallerTypeUnattended = "default-unattended"
-	InstallerTypePaaS = "paas"
-	//InstallerTypePaasSh     = "paas-sh"
+	//InstallerTypePaaS = "paas"
+	InstallerTypePaasSh = "paas-sh"
 )
 
 // Known flavors.

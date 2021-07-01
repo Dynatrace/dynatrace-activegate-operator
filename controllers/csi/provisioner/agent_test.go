@@ -4,16 +4,16 @@ import (
 	"archive/zip"
 	"encoding/base64"
 	"fmt"
+	"github.com/Dynatrace/dynatrace-operator/dtclient"
+	"github.com/Dynatrace/dynatrace-operator/logger"
+	"github.com/stretchr/testify/mock"
 	"io"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/Dynatrace/dynatrace-operator/dtclient"
-	"github.com/Dynatrace/dynatrace-operator/logger"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,7 +48,7 @@ func TestOneAgentProvisioner_InstallAgent(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		dtc := &dtclient.MockDynatraceClient{}
 		dtc.
-			On("GetLatestAgent", dtclient.OsUnix, dtclient.InstallerTypePaaS, dtclient.FlavorMultidistro,
+			On("GetLatestAgent", dtclient.OsUnix, dtclient.InstallerTypePaasSh, dtclient.FlavorMultidistro,
 				mock.AnythingOfType("string"), mock.AnythingOfType("*mem.File")).
 			Return(fmt.Errorf(errorMsg))
 		installAgentCfg := &installAgentConfig{
@@ -65,7 +65,7 @@ func TestOneAgentProvisioner_InstallAgent(t *testing.T) {
 
 		dtc := &dtclient.MockDynatraceClient{}
 		dtc.
-			On("GetLatestAgent", dtclient.OsUnix, dtclient.InstallerTypePaaS, dtclient.FlavorMultidistro,
+			On("GetLatestAgent", dtclient.OsUnix, dtclient.InstallerTypePaasSh, dtclient.FlavorMultidistro,
 				mock.AnythingOfType("string"), mock.AnythingOfType("*mem.File")).
 			Run(func(args mock.Arguments) {
 				writer := args.Get(4).(io.Writer)
@@ -91,7 +91,7 @@ func TestOneAgentProvisioner_InstallAgent(t *testing.T) {
 
 		dtc := &dtclient.MockDynatraceClient{}
 		dtc.
-			On("GetLatestAgent", dtclient.OsUnix, dtclient.InstallerTypePaaS, dtclient.FlavorMultidistro,
+			On("GetLatestAgent", dtclient.OsUnix, dtclient.InstallerTypePaasSh, dtclient.FlavorMultidistro,
 				mock.AnythingOfType("string"), mock.AnythingOfType("*mem.File")).
 			Run(func(args mock.Arguments) {
 				writer := args.Get(4).(io.Writer)

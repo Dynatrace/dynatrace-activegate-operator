@@ -37,7 +37,7 @@ func SetDynakubeStatus(instance *dynatracev1alpha1.DynaKube, opts Options) error
 		return errors.WithStack(err)
 	}
 
-	latestAgentVersionUnixPaas, err := dtc.GetLatestAgentVersion(dtclient.OsUnix, dtclient.InstallerTypePaaS)
+	latestAgentVersionUnixPaas, err := dtc.GetLatestAgentVersion(dtclient.OsUnix, dtclient.InstallerTypePaasSh)
 	if err != nil {
 		return errors.WithStack(err)
 	}
