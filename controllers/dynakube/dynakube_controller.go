@@ -9,6 +9,7 @@ import (
 	dynatracev1alpha1 "github.com/Dynatrace/dynatrace-operator/api/v1alpha1"
 	"github.com/Dynatrace/dynatrace-operator/controllers/activegate/capability"
 	rcap "github.com/Dynatrace/dynatrace-operator/controllers/activegate/reconciler/capability"
+	dtcsi "github.com/Dynatrace/dynatrace-operator/controllers/csi"
 	"github.com/Dynatrace/dynatrace-operator/controllers/dtpullsecret"
 	"github.com/Dynatrace/dynatrace-operator/controllers/dtversion"
 	"github.com/Dynatrace/dynatrace-operator/controllers/dynakube/status"
@@ -194,6 +195,18 @@ func (r *ReconcileDynaKube) reconcileDynaKube(ctx context.Context, rec *utils.Re
 
 	if !r.reconcileActiveGateCapabilities(rec) {
 		return
+	}
+
+	if rec.Instance.Spec.CodeModules.Enabled && (rec.Instance.Spec.CodeModules.Volume == corev1.VolumeSource{}) {
+		upd, err := dtcsi.NewReconciler(r.client, r.scheme, rec.Log, rec.Instance).Reconcile()
+		if rec.Error(err) || rec.Update(upd, defaultUpdateInterval, "CSI driver reconciled") {
+			return
+		}
+	} else {
+		ds := appsv1.DaemonSet{ObjectMeta: metav1.ObjectMeta{Name: dtcsi.DaemonSetName, Namespace: rec.Instance.Namespace}}
+		if err := r.ensureDeleted(&ds); rec.Error(err) {
+			return
+		}
 	}
 
 	if rec.Instance.Spec.InfraMonitoring.Enabled {
