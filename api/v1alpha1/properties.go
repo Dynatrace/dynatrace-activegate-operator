@@ -98,7 +98,7 @@ func buildImageRegistry(apiURL string) string {
 	return registry
 }
 
-// Tokens returns the name of the Secret to be used for tokens.
+// Tokens returns the name of the Secret to be used for Api- and Paas- tokens.
 func (dk *DynaKube) Tokens() string {
 	if tkns := dk.Spec.Tokens; tkns != "" {
 		return tkns
@@ -117,10 +117,11 @@ func (dk *DynaKube) ConnectionInfo() dtclient.ConnectionInfo {
 	}
 }
 
-func (dk *DynaKube) CommunicationHosts() []dtclient.CommunicationHost {
-	var communicationHosts []dtclient.CommunicationHost
+func (dk *DynaKube) CommunicationHosts() []*dtclient.CommunicationHost {
+	var communicationHosts []*dtclient.CommunicationHost
 	for _, communicationHost := range dk.Status.ConnectionInfo.CommunicationHosts {
-		communicationHosts = append(communicationHosts, dtclient.CommunicationHost(communicationHost))
+		ch := dtclient.CommunicationHost(communicationHost)
+		communicationHosts = append(communicationHosts, &ch)
 	}
 	return communicationHosts
 }

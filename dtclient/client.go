@@ -32,14 +32,8 @@ type Client interface {
 	// GetLatestAgent returns a reader with the contents of the download. Must be closed by caller.
 	GetLatestAgent(os, installerType, flavor, arch string, writer io.Writer) error
 
-	// GetCommunicationHosts returns, on success, the list of communication hosts used for available
-	// communication endpoints that the Dynatrace OneAgent can use to connect to.
-	//
-	// Returns an error if there was also an error response from the server.
-	GetConnectionInfo() (ConnectionInfo, error)
-
 	// GetCommunicationHostForClient returns a CommunicationHost for the client's API URL. Or error, if failed to be parsed.
-	GetCommunicationHostForClient() (CommunicationHost, error)
+	GetCommunicationHostForClient() (*CommunicationHost, error)
 
 	// SendEvent posts events to dynatrace API
 	SendEvent(eventData *EventData) error
@@ -52,8 +46,11 @@ type Client interface {
 	// GetTokenScopes returns the list of scopes assigned to a token if successful.
 	GetTokenScopes(token string) (TokenScopes, error)
 
-	// GetTenantInfo returns TenantInfo that holds UUID, Tenant Token and Endpoints
-	GetTenantInfo() (*TenantInfo, error)
+	// GetAgentTenantInfo returns TenantInfo that holds ConnectionInfo, UUID, Tenant Token and Endpoints
+	GetAgentTenantInfo() (*TenantInfo, error)
+
+	// GetAGTenantInfo returns TenantInfo that holds ConnectionInfo UUID, Tenant Token and Endpoints
+	GetAGTenantInfo() (*TenantInfo, error)
 }
 
 // Known OS values.

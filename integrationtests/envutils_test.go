@@ -121,9 +121,9 @@ func newReconciliationRequest(oaName string) reconcile.Request {
 
 func mockDynatraceClientFunc(communicationHosts *[]string) dynakube.DynatraceClientFunc {
 	return func(client client.Client, oa *dynatracev1alpha1.DynaKube, _ *corev1.Secret) (dtclient.Client, error) {
-		commHosts := make([]dtclient.CommunicationHost, len(*communicationHosts))
+		commHosts := make([]*dtclient.CommunicationHost, len(*communicationHosts))
 		for i, c := range *communicationHosts {
-			commHosts[i] = dtclient.CommunicationHost{Protocol: "https", Host: c, Port: 443}
+			commHosts[i] = &dtclient.CommunicationHost{Protocol: "https", Host: c, Port: 443}
 		}
 
 		connInfo := dtclient.ConnectionInfo{
@@ -134,14 +134,18 @@ func mockDynatraceClientFunc(communicationHosts *[]string) dynakube.DynatraceCli
 		dtc := new(dtclient.MockDynatraceClient)
 		dtc.On("GetLatestAgentVersion", "unix", "default").Return("17", nil)
 		dtc.On("GetLatestAgentVersion", "unix", "paas").Return("18", nil)
-		dtc.On("GetConnectionInfo").Return(connInfo, nil)
-		dtc.On("GetCommunicationHostForClient").Return(dtclient.CommunicationHost{
+		dtc.On("GetAgentTenantInfo").
+			Return(&dtclient.TenantInfo{
+				ConnectionInfo: connInfo,
+			}, nil)
+		dtc.On("GetCommunicationHostForClient").Return(&dtclient.CommunicationHost{
 			Protocol: "https",
 			Host:     DefaultTestAPIURL,
 			Port:     443,
 		}, nil)
 		dtc.On("GetTokenScopes", "42").Return(dtclient.TokenScopes{dtclient.TokenScopeInstallerDownload}, nil)
 		dtc.On("GetTokenScopes", "43").Return(dtclient.TokenScopes{dtclient.TokenScopeDataExport}, nil)
+		dtc.On("GetAGTenantInfo").Return(&dtclient.TenantInfo{}, nil)
 
 		return dtc, nil
 	}

@@ -177,6 +177,7 @@ func (r *Reconciler) deleteStatefulSetIfOldLabelsAreUsed(desiredSts *appsv1.Stat
 
 	if !reflect.DeepEqual(currentSts.Labels, desiredSts.Labels) {
 		r.log.Info("Deleting existing stateful set")
+
 		if err = r.Delete(context.TODO(), desiredSts); err != nil {
 			return false, err
 		}

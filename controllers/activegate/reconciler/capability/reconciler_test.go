@@ -11,6 +11,7 @@ import (
 	"github.com/Dynatrace/dynatrace-operator/controllers/customproperties"
 	"github.com/Dynatrace/dynatrace-operator/controllers/dtversion"
 	"github.com/Dynatrace/dynatrace-operator/controllers/kubesystem"
+	"github.com/Dynatrace/dynatrace-operator/dtclient"
 	"github.com/Dynatrace/dynatrace-operator/logger"
 	"github.com/Dynatrace/dynatrace-operator/scheme"
 	"github.com/go-logr/logr"
@@ -50,6 +51,7 @@ func createDefaultReconciler(t *testing.T) *Reconciler {
 			},
 		}).
 		Build()
+
 	instance := &v1alpha1.DynaKube{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: testNamespace,
@@ -58,7 +60,10 @@ func createDefaultReconciler(t *testing.T) *Reconciler {
 		return dtversion.ImageVersion{}, nil
 	}
 
-	r := NewReconciler(metricsCapability, clt, clt, scheme.Scheme, log, instance, imgVerProvider)
+	mockClient := &dtclient.MockDynatraceClient{}
+	mockClient.On("GetAGTenantInfo").Return(&dtclient.TenantInfo{}, nil)
+
+	r := NewReconciler(metricsCapability, clt, clt, scheme.Scheme, log, instance, imgVerProvider, mockClient)
 	require.NotNil(t, r)
 	require.NotNil(t, r.Client)
 	require.NotNil(t, r.Instance)

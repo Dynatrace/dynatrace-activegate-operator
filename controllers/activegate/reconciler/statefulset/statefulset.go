@@ -43,6 +43,8 @@ const (
 	DTDeploymentMetadata = "DT_DEPLOYMENT_METADATA"
 
 	ProxyKey = "ProxyKey"
+
+	TokensSecretVolumeName = "dynatrace-tokens-volume"
 )
 
 type statefulSetProperties struct {
@@ -132,7 +134,7 @@ func buildTemplateSpec(stsProperties *statefulSetProperties) corev1.PodSpec {
 						{MatchExpressions: buildKubernetesExpression(kubernetesArch, kubernetesOS)},
 					}}}},
 		Tolerations: stsProperties.Tolerations,
-		Volumes:     buildVolumes(stsProperties),
+		Volumes:     buildVolumes(stsProperties.Name, stsProperties),
 		ImagePullSecrets: []corev1.LocalObjectReference{
 			{Name: stsProperties.Name + dtpullsecret.PullSecretSuffix},
 		},
@@ -173,7 +175,7 @@ func buildContainer(stsProperties *statefulSetProperties) corev1.Container {
 	}
 }
 
-func buildVolumes(stsProperties *statefulSetProperties) []corev1.Volume {
+func buildVolumes(instanceName string, stsProperties *statefulSetProperties) []corev1.Volume {
 	var volumes []corev1.Volume
 
 	if !isCustomPropertiesNilOrEmpty(stsProperties.CustomProperties) {
@@ -191,6 +193,15 @@ func buildVolumes(stsProperties *statefulSetProperties) []corev1.Volume {
 
 	volumes = append(volumes, stsProperties.volumes...)
 
+	//volumes = append(volumes, corev1.Volume{
+	//	Name: TokensSecretVolumeName,
+	//	VolumeSource: corev1.VolumeSource{
+	//		Secret: &corev1.SecretVolumeSource{
+	//			SecretName: tokens.ExtendWithAgTokensSecretSuffix(instanceName),
+	//		},
+	//	},
+	//})
+
 	return volumes
 }
 
@@ -203,6 +214,12 @@ func determineCustomPropertiesSource(stsProperties *statefulSetProperties) strin
 
 func buildVolumeMounts(stsProperties *statefulSetProperties) []corev1.VolumeMount {
 	var volumeMounts []corev1.VolumeMount
+
+	//volumeMounts = append(volumeMounts, corev1.VolumeMount{
+	//	Name:      TokensSecretVolumeName,
+	//	ReadOnly:  true,
+	//	MountPath: "/var/lib/dynatrace/secrets",
+	//})
 
 	if !isCustomPropertiesNilOrEmpty(stsProperties.CustomProperties) {
 		volumeMounts = append(volumeMounts, corev1.VolumeMount{

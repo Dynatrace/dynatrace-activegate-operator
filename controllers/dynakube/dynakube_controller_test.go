@@ -2,6 +2,7 @@ package dynakube
 
 import (
 	"context"
+	"net/url"
 	"testing"
 
 	"github.com/Dynatrace/dynatrace-operator/api/v1alpha1"
@@ -52,29 +53,35 @@ func TestReconcileActiveGate_Reconcile(t *testing.T) {
 	t.Run(`Reconcile works with minimal setup and interface`, func(t *testing.T) {
 		mockClient := &dtclient.MockDynatraceClient{}
 
-		mockClient.On("GetCommunicationHostForClient").Return(dtclient.CommunicationHost{
+		mockClient.On("GetCommunicationHostForClient").Return(&dtclient.CommunicationHost{
 			Protocol: testProtocol,
 			Host:     testHost,
 			Port:     testPort,
 		}, nil)
-		mockClient.On("GetConnectionInfo").Return(dtclient.ConnectionInfo{
-			CommunicationHosts: []dtclient.CommunicationHost{
-				{
-					Protocol: testProtocol,
-					Host:     testHost,
-					Port:     testPort,
+		mockClient.On("GetAgentTenantInfo").
+			Return(&dtclient.TenantInfo{
+				ConnectionInfo: dtclient.ConnectionInfo{
+					CommunicationHosts: []*dtclient.CommunicationHost{
+						{
+							Protocol: testProtocol,
+							Host:     testHost,
+							Port:     testPort,
+						},
+						{
+							Protocol: testAnotherProtocol,
+							Host:     testAnotherHost,
+							Port:     testAnotherPort,
+						},
+					},
+					TenantUUID: testUUID,
 				},
-				{
-					Protocol: testAnotherProtocol,
-					Host:     testAnotherHost,
-					Port:     testAnotherPort,
-				},
-			},
-			TenantUUID: testUUID,
-		}, nil)
+			}, nil)
 		mockClient.On("GetTokenScopes", testPaasToken).Return(dtclient.TokenScopes{dtclient.TokenScopeInstallerDownload}, nil)
 		mockClient.On("GetTokenScopes", testAPIToken).Return(dtclient.TokenScopes{dtclient.TokenScopeDataExport}, nil)
-		mockClient.On("GetConnectionInfo").Return(dtclient.ConnectionInfo{TenantUUID: "abc123456"}, nil)
+		mockClient.On("GetAgentTenantInfo").Return(&dtclient.TenantInfo{
+			ConnectionInfo: dtclient.ConnectionInfo{TenantUUID: "abc123456"},
+		}, nil)
+		mockClient.On("GetAGTenantInfo").Return(&dtclient.TenantInfo{}, nil)
 		mockClient.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypeDefault).Return(testVersion, nil)
 		mockClient.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypePaaS).Return(testVersion, nil)
 
@@ -152,30 +159,41 @@ func TestReconcileActiveGate_Reconcile(t *testing.T) {
 			},
 		}
 
-		mockClient.On("GetCommunicationHostForClient").Return(dtclient.CommunicationHost{
+		mockClient.On("GetCommunicationHostForClient").Return(&dtclient.CommunicationHost{
 			Protocol: testProtocol,
 			Host:     testHost,
 			Port:     testPort,
 		}, nil)
-		mockClient.On("GetConnectionInfo").Return(dtclient.ConnectionInfo{
-			CommunicationHosts: []dtclient.CommunicationHost{
-				{
-					Protocol: testProtocol,
-					Host:     testHost,
-					Port:     testPort,
+		mockClient.On("GetAgentTenantInfo").Return(&dtclient.TenantInfo{
+			ConnectionInfo: dtclient.ConnectionInfo{
+				CommunicationHosts: []*dtclient.CommunicationHost{
+					{
+						Protocol: testProtocol,
+						Host:     testHost,
+						Port:     testPort,
+					},
+					{
+						Protocol: testAnotherProtocol,
+						Host:     testAnotherHost,
+						Port:     testAnotherPort,
+					},
 				},
-				{
-					Protocol: testAnotherProtocol,
-					Host:     testAnotherHost,
-					Port:     testAnotherPort,
-				},
+				TenantUUID: testUUID,
 			},
-			TenantUUID: testUUID,
 		}, nil)
 		mockClient.On("GetTokenScopes", testPaasToken).Return(dtclient.TokenScopes{dtclient.TokenScopeInstallerDownload}, nil)
 		mockClient.On("GetTokenScopes", testAPIToken).Return(dtclient.TokenScopes{dtclient.TokenScopeDataExport}, nil)
 		mockClient.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypeDefault).Return(testVersion, nil)
 		mockClient.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypePaaS).Return(testVersion, nil)
+		mockClient.On("GetAGTenantInfo").
+			Return(&dtclient.TenantInfo{
+				ConnectionInfo: dtclient.ConnectionInfo{
+					TenantUUID: "123",
+				},
+				Token:                 "asdf",
+				Endpoints:             nil,
+				CommunicationEndpoint: nil,
+			}, nil)
 
 		result, err := r.Reconcile(context.TODO(), reconcile.Request{
 			NamespacedName: types.NamespacedName{Namespace: testNamespace, Name: testName},
@@ -235,30 +253,49 @@ func TestReconcile_RemoveRoutingIfDisabled(t *testing.T) {
 		NamespacedName: types.NamespacedName{Namespace: testNamespace, Name: testName},
 	}
 
-	mockClient.On("GetCommunicationHostForClient").Return(dtclient.CommunicationHost{
+	mockClient.On("GetCommunicationHostForClient").Return(&dtclient.CommunicationHost{
 		Protocol: testProtocol,
 		Host:     testHost,
 		Port:     testPort,
 	}, nil)
-	mockClient.On("GetConnectionInfo").Return(dtclient.ConnectionInfo{
-		CommunicationHosts: []dtclient.CommunicationHost{
-			{
-				Protocol: testProtocol,
-				Host:     testHost,
-				Port:     testPort,
+
+	mockClient.On("GetAgentTenantInfo").
+		Return(&dtclient.TenantInfo{
+			ConnectionInfo: dtclient.ConnectionInfo{
+				CommunicationHosts: []*dtclient.CommunicationHost{
+					{
+						Protocol: testProtocol,
+						Host:     testHost,
+						Port:     testPort,
+					},
+					{
+						Protocol: testAnotherProtocol,
+						Host:     testAnotherHost,
+						Port:     testAnotherPort,
+					},
+				},
+				TenantUUID: testUUID,
 			},
-			{
-				Protocol: testAnotherProtocol,
-				Host:     testAnotherHost,
-				Port:     testAnotherPort,
-			},
-		},
-		TenantUUID: testUUID,
-	}, nil)
+		}, nil)
 	mockClient.On("GetTokenScopes", testPaasToken).Return(dtclient.TokenScopes{dtclient.TokenScopeInstallerDownload}, nil)
 	mockClient.On("GetTokenScopes", testAPIToken).Return(dtclient.TokenScopes{dtclient.TokenScopeDataExport}, nil)
 	mockClient.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypeDefault).Return(testVersion, nil)
 	mockClient.On("GetLatestAgentVersion", dtclient.OsUnix, dtclient.InstallerTypePaaS).Return(testVersion, nil)
+
+	url1, _ := url.Parse("https://aaa")
+	url2, _ := url.Parse("https://bbb")
+	url3, _ := url.Parse("http://ccc")
+
+	mockClient.On("GetAGTenantInfo").
+		Return(&dtclient.TenantInfo{
+			ConnectionInfo: dtclient.ConnectionInfo{
+				TenantUUID: "123",
+			},
+			Token:                 "asdf",
+			Endpoints:             []*url.URL{url1, url2, url3},
+			CommunicationEndpoint: url1,
+		},
+			nil)
 
 	_, err := r.Reconcile(context.TODO(), request)
 	assert.NoError(t, err)

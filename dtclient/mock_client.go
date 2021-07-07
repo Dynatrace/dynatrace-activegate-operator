@@ -11,7 +11,12 @@ type MockDynatraceClient struct {
 	mock.Mock
 }
 
-func (o *MockDynatraceClient) GetTenantInfo() (*TenantInfo, error) {
+func (o *MockDynatraceClient) GetAGTenantInfo() (*TenantInfo, error) {
+	args := o.Called()
+	return args.Get(0).(*TenantInfo), args.Error(1)
+}
+
+func (o *MockDynatraceClient) GetAgentTenantInfo() (*TenantInfo, error) {
 	args := o.Called()
 	return args.Get(0).(*TenantInfo), args.Error(1)
 }
@@ -26,14 +31,9 @@ func (o *MockDynatraceClient) GetLatestAgent(os, installerType, flavor, arch str
 	return args.Error(0)
 }
 
-func (o *MockDynatraceClient) GetConnectionInfo() (ConnectionInfo, error) {
+func (o *MockDynatraceClient) GetCommunicationHostForClient() (*CommunicationHost, error) {
 	args := o.Called()
-	return args.Get(0).(ConnectionInfo), args.Error(1)
-}
-
-func (o *MockDynatraceClient) GetCommunicationHostForClient() (CommunicationHost, error) {
-	args := o.Called()
-	return args.Get(0).(CommunicationHost), args.Error(1)
+	return args.Get(0).(*CommunicationHost), args.Error(1)
 }
 
 func (o *MockDynatraceClient) SendEvent(event *EventData) error {
